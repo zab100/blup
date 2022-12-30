@@ -1,0 +1,6 @@
+wsa/
+*.img
+build/
+lib/
+*-error.*
+open_gapps*

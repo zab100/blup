@@ -1,0 +1,1 @@
+sudo --preserve-env=PATH ./reinstall.sh ./wsa/x64-postcompile

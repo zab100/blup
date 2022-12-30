@@ -1,0 +1,11 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\services\\classes.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\services\\classes2.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\framework\\classes.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\framework\\classes2.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\framework\\classes3.jar",
+        "c:\\Users\\Zain\\Desktop\\ModifyAndroidSystem\\lib\\framework\\classes4.jar"
+    ]
+}

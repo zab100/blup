@@ -1,0 +1,1 @@
+sudo --preserve-env=PATH ./run.sh ./wsa/x64-postcompile

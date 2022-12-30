@@ -1,0 +1,52 @@
+<project default="compile">
+    <target name="framework">
+        <mkdir dir="/tmp/bluetoothframework/bin/framework" />
+        <javac destdir="/tmp/bluetoothframework/bin/framework" includeantruntime="false" source="1.8" target="1.8">
+            <src path="./src/framework"/>
+            <src path="./winbt/src/main/java/com/zbt/networking"/>
+            <classpath>
+               <fileset dir="./lib">
+                  <include name="**/*.jar" />
+               </fileset>
+                <!-- <fileset dir="./winbt">
+                   <include name="**/*.jar" />
+                </fileset> -->
+            </classpath>
+        </javac>
+    </target>
+    <target name="services">
+        <mkdir dir="/tmp/bluetoothframework/bin/services" />
+        <javac destdir="/tmp/bluetoothframework/bin/services" includeantruntime="false" source="1.8" target="1.8">
+            <src path="./src/services"/>
+            <classpath>
+               <fileset dir="./lib">
+                  <include name="**/*.jar" />
+               </fileset>
+                <!-- <fileset dir="/tmp/bluetoothframework/bin/framework">
+                    <include name="**/*.class" />
+                </fileset> -->
+                <!-- <fileset dir="./winbt">
+                   <include name="**/*.jar" />
+                </fileset> -->
+            </classpath>
+        </javac>
+    </target>
+    <target name="Bluetooth">
+        <mkdir dir="/tmp/bluetoothframework/bin/Bluetooth" />
+        <javac destdir="/tmp/bluetoothframework/bin/Bluetooth" includeantruntime="false" source="1.8" target="1.8">
+            <src path="./src/Bluetooth"/>
+            <src path="./winbt/src/main/java/com/zbt/shared"/>
+            <classpath>
+               <fileset dir="./lib">
+                  <include name="**/*.jar" />
+               </fileset>
+                <!-- <fileset dir="/tmp/bluetoothframework/bin/framework">
+                    <include name="**/*.class" />
+                </fileset> -->
+                <!-- <fileset dir="./winbt">
+                   <include name="**/*.jar" />
+                </fileset> -->
+            </classpath>
+        </javac>
+    </target>
+</project>
