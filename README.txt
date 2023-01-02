@@ -6,6 +6,7 @@ It could also theoretically be used to bring bluetooth support to any android em
 This software has not been tested extensively. This is just a proof-of-concept version. There may be security holes and bugs. Use this at your own risk.
 Currently tested: Sennheiser Smart Control version 3.8.1 (Version 4.1.6 hangs, but not sure if it's a WSA or bluetooth issue) with PXC550.
 This only works with RFCOMM devices currently. L2CAP protocols are not supported by the windows bluetooth driver.
+Acting as a bluetooth server is also not implemented completely. The emulator can only connect as a client.
 
 Requirements: 
 - Windows 11 x64. Arm64 will not work

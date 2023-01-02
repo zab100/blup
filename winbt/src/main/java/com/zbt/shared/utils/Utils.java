@@ -68,6 +68,7 @@ public class Utils {
      * @param uuid - A 128 bit UUID as a String
      * @return Debugging information about the UUID
      */
+    @Deprecated
     public static String attemptMatchUUID(String uuid){
         // String shortForm = uuid.substring(0, 8);
         // long l = Long.parseLong(shortForm, 16);
