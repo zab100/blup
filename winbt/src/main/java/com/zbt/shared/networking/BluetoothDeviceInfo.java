@@ -12,6 +12,8 @@ public class BluetoothDeviceInfo implements Serializable{
     private int minorClassOfDevice;
     private int serviceOfDevice;
 
+    private BluetoothServiceInfo services;
+
     public BluetoothDeviceInfo(){
         
     }
@@ -51,6 +53,14 @@ public class BluetoothDeviceInfo implements Serializable{
 
     public void setServiceOfDevice(int serviceOfDevice) {
         this.serviceOfDevice = serviceOfDevice;
+    }
+
+    public BluetoothServiceInfo getServices() {
+        return services;
+    }
+
+    public void setServices(BluetoothServiceInfo services) {
+        this.services = services;
     }
 
     @Override

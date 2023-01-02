@@ -3966,10 +3966,10 @@ public class AdapterService extends Service {
     // }
 
     /*package*/
-    native boolean enableNative();
-    // boolean enableNative(){
-    //     return windowsServices.enableWindows();
-    // }
+    native boolean enableDeprec();
+    boolean enableNative(){
+        return windowsServices.enableWindows();
+    }
 
     /*package*/
     native boolean disableNative();

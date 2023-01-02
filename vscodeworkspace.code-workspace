@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "winbt"
+		},
+		{
+			"path": "src/Bluetooth"
+		}
+	],
+	"settings": {
+		"java.project.referencedLibraries": [
+			"lib/**/*.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\winbt\\winbt.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\Bluetooth\\classes.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework\\classes.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework\\classes2.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework\\classes3.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework\\classes4.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework-connectivity\\classes.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\framework-wifi\\classes.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\services\\classes.jar",
+			"c:\\Users\\Zain\\Desktop\\blup\\lib\\services\\classes2.jar"
+		]
+	}
+}

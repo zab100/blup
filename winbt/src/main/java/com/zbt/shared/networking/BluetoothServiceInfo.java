@@ -42,7 +42,7 @@ public class BluetoothServiceInfo implements Serializable{
 
     @Override
     public String toString(){
-        return address + ", " + uuids.size() + " uuids";
+        return address + ", " + uuids.size() + " uuids " + uuids.toString();
     }
 
     

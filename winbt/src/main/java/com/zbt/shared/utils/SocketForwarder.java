@@ -33,10 +33,10 @@ public class SocketForwarder extends Thread{
             while((lenRead = inputStream.read(available)) != -1){ 
                 if(snooping){
                     System.out.println("copying bytes" + Arrays.toString(available));
+                    System.out.println("bytes copied" + lenRead);
                 }
                 outputStream.write(available, 0, lenRead);
                 outputStream.flush();
-                System.out.println("bytes copied" + lenRead);
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block

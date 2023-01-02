@@ -55,6 +55,8 @@ public class WindowsServices {
     /*package*/
     boolean enableWindows(){
         Log.e("MODIFYANDROIDSYSTEM", "enable windows");
+        windowsCallbacks.stateChangeCallback(AbstractionLayer.BT_STATE_ON);
+        startDiscoveryWindows();
         return true;
     }
 
@@ -121,28 +123,9 @@ public class WindowsServices {
     public boolean createBondWindows(byte[] address, int transport){
         Log.e("MODIFYANDROIDSYSTEM", "create bond windows " + Utils.byteArrayToString(address) + " " + transport);
         windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS, address, AbstractionLayer.BT_BOND_STATE_BONDING);
+        windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS, address, AbstractionLayer.BT_BOND_STATE_BONDED);
+        windowsCallbacks.adapterPropertyChangedCallback(new int[]{AbstractionLayer.BT_PROPERTY_ADAPTER_BONDED_DEVICES}, new byte[][]{address}); 
         // windowsCallbacks.sspRequestCallback(address, new byte[]{65}, 0, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION, 1598);
-        WindowsCommunicator.sendToWindows(new BluetoothDeviceMessage(NetworkingRequest.REQUEST_BLUETOOTH_DEVICE_ALL_BASIC_UUIDS, Utils.byteArrayToString(address)), (response) ->{
-            Log.e("MODIFYANDROIDSYSTEM", "Got bonding services result");
-            ParcelUuid[] parcelUuids = new ParcelUuid[response.getDeviceServices().getUuids().size()];
-            int[] index = new int[]{0};
-            response.getDeviceServices().getUuids().forEach((uuid) -> {
-                parcelUuids[index[0]] = ParcelUuid.fromString(uuid);
-                index[0]++;
-            });
-
-            windowsCallbacks.devicePropertyChangedCallback(address, 
-                        new int[]{AbstractionLayer.BT_PROPERTY_UUIDS}, 
-                        new byte[][]{Utils.uuidsToByteArray(parcelUuids)});
-        }, (success) -> {
-            if(success){
-                windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS, address, AbstractionLayer.BT_BOND_STATE_BONDED);
-                windowsCallbacks.adapterPropertyChangedCallback(new int[]{AbstractionLayer.BT_PROPERTY_ADAPTER_BONDED_DEVICES}, new byte[][]{address});    
-            } else {
-                windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_FAIL, address, AbstractionLayer.BT_BOND_STATE_NONE);
-            }
-        });
-
         return true;
     }
 
@@ -190,7 +173,6 @@ public class WindowsServices {
     }
 
     boolean startDiscoveryWindows(){
-        //TODO: start new thread and notify when discovery finishes
         windowsCallbacks.discoveryStateChangeCallback(AbstractionLayer.BT_DISCOVERY_STARTED);
         BluetoothDeviceMessage message = new BluetoothDeviceMessage(NetworkingRequest.REQUEST_PAIRED_DEVICES);
         WindowsCommunicator.sendToWindows(message, (response) -> {
@@ -201,12 +183,17 @@ public class WindowsServices {
             Integer majorClassOfDevice = device.getMajorClassOfDevice();
             Integer minorClassOfDevice = device.getMinorClassOfDevice();
 
-            windowsCallbacks.devicePropertyChangedCallback(Utils.addressToBytes(address), 
-                        new int[]{AbstractionLayer.BT_PROPERTY_BDNAME, AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE, AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE}, 
-                        new byte[][]{name.getBytes(), Utils.intToByteArray(majorClassOfDevice), Utils.intToByteArray(minorClassOfDevice)});
+            byte[] addressBytes = Utils.addressToBytes(address);
 
+            windowsCallbacks.devicePropertyChangedCallback(addressBytes, 
+                new int[]{AbstractionLayer.BT_PROPERTY_BDNAME, AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE, AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE}, 
+                new byte[][]{name.getBytes(), Utils.intToByteArray(majorClassOfDevice), Utils.intToByteArray(minorClassOfDevice)});
             
-            windowsCallbacks.deviceFoundCallback(Utils.addressToBytes(address));
+            windowsCallbacks.deviceFoundCallback(addressBytes);
+
+            windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS, addressBytes, AbstractionLayer.BT_BOND_STATE_BONDING);
+            windowsCallbacks.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS, addressBytes, AbstractionLayer.BT_BOND_STATE_BONDED);
+            windowsCallbacks.adapterPropertyChangedCallback(new int[]{AbstractionLayer.BT_PROPERTY_ADAPTER_BONDED_DEVICES}, new byte[][]{addressBytes}); 
         }, (success) -> {
             windowsCallbacks.discoveryStateChangeCallback(AbstractionLayer.BT_DISCOVERY_STOPPED);
         });
@@ -233,7 +220,21 @@ public class WindowsServices {
     /*package*/
     boolean getRemoteServicesWindows(byte[] address){
         Log.e("MODIFYANDROIDSYSTEM", "get remote services");
-        return false;
+
+        WindowsCommunicator.sendToWindows(new BluetoothDeviceMessage(NetworkingRequest.REQUEST_BLUETOOTH_DEVICE_ALL_BASIC_UUIDS, Utils.byteArrayToString(address)), (response) ->{
+            Log.e("MODIFYANDROIDSYSTEM", "Got bonding services result");
+            ParcelUuid[] parcelUuids = new ParcelUuid[response.getDeviceServices().getUuids().size()];
+            int[] index = new int[]{0};
+            response.getDeviceServices().getUuids().forEach((uuid) -> {
+                parcelUuids[index[0]] = ParcelUuid.fromString(uuid);
+                index[0]++;
+            });
+
+            windowsCallbacks.devicePropertyChangedCallback(address, 
+                        new int[]{AbstractionLayer.BT_PROPERTY_UUIDS}, 
+                        new byte[][]{Utils.uuidsToByteArray(parcelUuids)});
+        });
+        return true;
     }
 
     /*package*/

@@ -9,11 +9,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
+
 import javax.bluetooth.BluetoothStateException;
 import javax.bluetooth.DataElement;
 import javax.bluetooth.DeviceClass;
@@ -30,8 +30,6 @@ import javax.microedition.io.StreamConnectionNotifier;
 import com.intel.bluetooth.BlueCoveConfigProperties;
 import com.intel.bluetooth.BlueCoveImpl;
 import com.intel.bluetooth.BluetoothConsts;
-import com.zbt.sdp.RFCOMMSDP;
-import com.zbt.sdp.SDPBase;
 import com.zbt.shared.networking.BluetoothDeviceConnected;
 import com.zbt.shared.networking.BluetoothDeviceInfo;
 import com.zbt.shared.networking.BluetoothServiceInfo;
@@ -48,7 +46,7 @@ public class BluetoothManager {
     private ParamRunnable<BluetoothDeviceInfo> onDeviceFound;
     private final Map<Integer, ServiceRecord[]> services = new HashMap<>();
 
-    private final Map<String, List<SDPBase>> sdpFound = new HashMap<>();
+    // private final Map<String, List<SDPBase>> sdpFound = new HashMap<>();
 
     private DiscoveryListener listener = new DiscoveryListener() {
         @Override
@@ -67,6 +65,8 @@ public class BluetoothManager {
             info.setMinorClassOfDevice(cod.getMinorDeviceClass());
             info.setServiceOfDevice(cod.getServiceClasses());
 
+            // info.setServices(getServicesForDeviceWithoutFail(btDevice, BluetoothConsts.RFCOMM_PROTOCOL_UUID));
+
             onDeviceFound.run(info);
         }
 
@@ -79,7 +79,7 @@ public class BluetoothManager {
 
         @Override
         public void serviceSearchCompleted(int transID, int respCode) {
-            // System.out.println("Service search completed, response code: " + respCode);
+            System.out.println("Service search completed, response code: " + respCode);
             services.putIfAbsent(transID, new ServiceRecord[0]);
             synchronized(synchronizeBluetoothServiceDiscovery){
                 synchronizeBluetoothServiceDiscovery.notifyAll();
@@ -138,33 +138,32 @@ public class BluetoothManager {
         device.getDiscoveryAgent().cancelInquiry(listener);
     }
 
-    public BluetoothServiceInfo getServicesForDeviceWithoutFail(String address, UUID uuid) {
-        address = Utils.cleanAddress(address);
+    private final Semaphore oneAtATime = new Semaphore(3); //TODO: tune this to the maximum number of inquiries BlueCove allows
 
+    public BluetoothServiceInfo getServicesForDeviceWithoutFail(RemoteDevice btDevice, UUID uuid) {
+        
+        String address = btDevice.getBluetoothAddress();
         System.out.println("looking up device " + address + " from " + discoveredDevices);
 
-        RemoteDevice btDevice = discoveredDevices.get(address);
-
         int search = -1;
+
         synchronized(synchronizeBluetoothServiceDiscovery){
             while(!services.containsKey(search)){
                 try {
-                    try {
-                        search = device.getDiscoveryAgent().searchServices(null, new UUID[]{uuid}, btDevice, listener);
-                    } catch (BluetoothStateException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                        continue;
-                    }
+                    oneAtATime.acquire();
+                    search = device.getDiscoveryAgent().searchServices(null, new UUID[]{uuid}, btDevice, listener);
                     synchronizeBluetoothServiceDiscovery.wait();
-                } catch (InterruptedException e) {
+                    oneAtATime.release();
+                } catch (BluetoothStateException | InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         }
 
-        sdpFound.put(Utils.cleanAddress(address), new ArrayList<>());
+        System.out.println("Sdp search found " + services.get(search) + " for " + address);
+
+        // sdpFound.put(Utils.cleanAddress(address), new ArrayList<>());
 
         BluetoothServiceInfo info = new BluetoothServiceInfo();
         
@@ -190,7 +189,7 @@ public class BluetoothManager {
                 }
 
                 //TODO: change this to choose the right protocol if anything other than rfcomm only is supported
-                sdpFound.get(address).add(new RFCOMMSDP(record));
+                // sdpFound.get(address).add(new RFCOMMSDP(record));
 
                 for(int attributeID : record.getAttributeIDs()){
                     if(App.logging){
@@ -208,7 +207,23 @@ public class BluetoothManager {
             e.printStackTrace();
         }
 
+        System.out.println(info);
+
         return info;
+    }
+
+    public BluetoothServiceInfo getServicesForDeviceWithoutFail(String address, UUID uuid) {
+        address = Utils.cleanAddress(address);
+
+        System.out.println("looking up device " + address + " from " + discoveredDevices);
+
+        RemoteDevice[] devices = device.getDiscoveryAgent().retrieveDevices(DiscoveryAgent.PREKNOWN);
+        for(RemoteDevice btDevice : devices){
+            if(btDevice.getBluetoothAddress().equals(address)){
+                return getServicesForDeviceWithoutFail(btDevice, uuid);
+            }
+        }
+        return new BluetoothServiceInfo();
     }
 
     private BluetoothServiceInfo recurseElements(DataElement element, BluetoothServiceInfo info, int level, BufferedWriter log){
@@ -363,9 +378,10 @@ public class BluetoothManager {
         uuid = Utils.cleanUUID(uuid);
         System.out.println("Creating rfcomm socket to " + address);
 
-        RFCOMMSDP base = (RFCOMMSDP) matchSDP(address, uuid);
+        // RFCOMMSDP base = (RFCOMMSDP) matchSDP(address, uuid);
         
-        String url = BluetoothConsts.PROTOCOL_SCHEME_RFCOMM + "://" + address + ":" + base.getChannel();
+        // String url = BluetoothConsts.PROTOCOL_SCHEME_RFCOMM + "://" + address + ":" + base.getChannel();
+        String url = device.getDiscoveryAgent().selectService(new UUID(uuid, false), 0, false);
         System.out.println("Connecting to " + url);
         StreamConnection connection = (StreamConnection) Connector.open(url);
 
@@ -377,8 +393,8 @@ public class BluetoothManager {
 
         SocketForwarder forwarder1 = new SocketForwarder(outToDevice, inFromAndroid);
         SocketForwarder forwarder2 = new SocketForwarder(outToAndroid, inFromDevice);
-        forwarder1.setSnooping(true);
-        forwarder2.setSnooping(true);
+        forwarder1.setSnooping(App.snooping);
+        forwarder2.setSnooping(App.snooping);
 
         forwarder1.start();
         forwarder2.start();
@@ -455,22 +471,5 @@ public class BluetoothManager {
 
             overall.start();
         }
-    }
-
-    /**
-     * Search through SDP records that were found for a specific device to find a service type
-     * @param address - The device to find SDP records from
-     * @param uuid - The service type to look for, can be a 128 bit or 16 bit uuid
-     * @return the SDP record if it exists, otherwise null
-     */
-    private SDPBase matchSDP(String address, String uuid){
-        // KnownUUIDs convertedUUID = KnownUUIDs.matchUUID(uuid);
-        List<SDPBase> sdps = sdpFound.get(address);
-        for(SDPBase sdp : sdps){
-            if(sdp.serviceType.equals(uuid)){
-                return sdp;
-            }
-        }
-        return null;
     }
 }

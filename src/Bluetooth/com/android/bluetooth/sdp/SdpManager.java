@@ -712,14 +712,14 @@ public class SdpManager {
     private boolean sdpSearchWindows(String address, String uuid){
         Log.e("MODIFYANDROIDSDPMANAGER", "sdp search " + address + " " + uuid);
 
-        WindowsCommunicator.sendToWindows(new BluetoothDeviceMessage(NetworkingRequest.REQUEST_BLUETOOTH_DEVICE_SERVICE_UUID, address, uuid), (response) ->{
-            for(String foundUUID : response.getDeviceServices().getUuids()){
-                if(foundUUID.equals(BluetoothUuid.DIP.toString())){
-                    sdpDipRecordFoundCallback(AbstractionLayer.BT_STATUS_SUCCESS, address.getBytes(), foundUUID.getBytes(), -1, -1, -1, -1, -1, false, false);
-                }
-            }
-        });
-        return WindowsCommunicator.isAddressSet();
+        // WindowsCommunicator.sendToWindows(new BluetoothDeviceMessage(NetworkingRequest.REQUEST_BLUETOOTH_DEVICE_SERVICE_UUID, address, uuid), (response) ->{
+        //     for(String foundUUID : response.getDeviceServices().getUuids()){
+        //         if(foundUUID.equals(BluetoothUuid.DIP.toString())){
+        //             sdpDipRecordFoundCallback(AbstractionLayer.BT_STATUS_SUCCESS, address.getBytes(), foundUUID.getBytes(), -1, -1, -1, -1, -1, false, false);
+        //         }
+        //     }
+        // });
+        return true;
     }
 
     private int sdpCreateMapMasRecordWindows(String serviceName, int masId, int rfcommChannel, int l2capPsm, int version, int msgTypes, int features){
